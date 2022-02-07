@@ -1,4 +1,5 @@
 import { Container, transports, format, Logform, Logger } from 'winston'
+import process from 'process'
 import { LoggingWinston } from '@google-cloud/logging-winston'
 
 import { ILogger } from '../../../ports/logger'
@@ -20,6 +21,7 @@ export class GoogleWinstonLogger implements ILogger {
     this.correlationId = undefined
     this.container = new Container().add(this.loggerName, {
       defaultMeta: {
+        pid: process.pid,
         correlationId: this.correlationId,
         microservice: 'project_name',
       },

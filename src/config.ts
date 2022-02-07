@@ -2,6 +2,8 @@ export const Config = {
   // GENERAL
   NODE_ENV: process.env.NODE_ENV, // Node environment
 
+  CONCURRENCY_NUM_CPUS: process.env.CONCURRENCY_NUM_CPUS ? Number(process.env.CONCURRENCY_NUM_CPUS) : undefined, // Number of CPUs
+
   // GOOGLE
   GCLOUD_PROJECT_ID: process.env.GCLOUD_PROJECT_ID, // Google Cloud project id
 

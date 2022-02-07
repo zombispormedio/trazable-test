@@ -16,7 +16,6 @@ export class PubsubPublisher implements IQueue {
   async publish(message: string, attributes: MessageAtributes): Promise<string | undefined> {
     let messageId
     try {
-      await this.createTopicIfNotExists(this.topicName)
       const dataBuffer = Buffer.from(this.addVersionAndCorrelationId(message))
       messageId = await this.pubSubClient.topic(this.topicName).publish(dataBuffer, {
         ...attributes,
@@ -31,11 +30,13 @@ export class PubsubPublisher implements IQueue {
     return messageId
   }
 
-  private async createTopicIfNotExists(topicName: string) {
+  async createTopicIfNotExists(): Promise<void> {
     const [topics] = await this.pubSubClient.getTopics()
 
     const topicsNames = topics.map(({ name }) => name.split('/')[name.split('/').length - 1])
-    if (!topicsNames.includes(topicName)) await this.pubSubClient.createTopic(topicName)
+    if (!topicsNames.includes(this.topicName)) {
+      await this.pubSubClient.createTopic(this.topicName)
+    }
   }
 
   /**

@@ -14,11 +14,12 @@ export class GooglePubSub {
   private readonly showMessageUseCase: ShowMessage
   private readonly logger: ILogger
   private readonly pubSubClient: PubSub
+  private readonly topicName: string
 
-  constructor(projectId: string, showMessageUseCase: ShowMessage, logger: ILogger) {
+  constructor(projectId: string, topicName: string, showMessageUseCase: ShowMessage, logger: ILogger) {
     this.showMessageUseCase = showMessageUseCase
     this.logger = logger
-
+    this.topicName = topicName
     this.pubSubClient = new PubSub({ projectId })
   }
 
@@ -33,6 +34,6 @@ export class GooglePubSub {
       exampleHandler.showMessageHandler,
       this.logger,
       Config.SUBSCRIPTION_NAME
-    ).initSubscription()
+    ).initSubscription(this.topicName)
   }
 }

@@ -26,4 +26,6 @@ export interface IQueue {
    * @returns The message Id
    */
   publish(message: string, attributes: MessageAtributes): Promise<string | undefined>
+
+  createTopicIfNotExists(): Promise<void>
 }

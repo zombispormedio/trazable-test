@@ -22,16 +22,25 @@ export class Subscription {
     this.subscriptionName = subscriptionName
   }
 
-  initSubscription(): void {
+  async initSubscription(topicName: string): Promise<void> {
     if (this.subscriptionName) {
-      // Subscriptions
+      await this.createSubscriptionIfNotExists(topicName, this.subscriptionName)
       const subscription = this.pubSubClient.subscription(this.subscriptionName)
 
       // Subscription handler
       subscription.on('message', this.messageHandler)
-      subscription.on('error', error => {
+      subscription.on('error', async error => {
         this.logger.error(error.details)
       })
+    }
+  }
+
+  private async createSubscriptionIfNotExists(topicName: string, subscriptionName: string): Promise<void> {
+    const [subscriptions] = await this.pubSubClient.getSubscriptions()
+
+    const subscriptionsNames = subscriptions.map(({ name }) => name.split('/')[name.split('/').length - 1])
+    if (!subscriptionsNames.includes(subscriptionName)) {
+      await this.pubSubClient.createSubscription(topicName, subscriptionName)
     }
   }
 }

@@ -43,7 +43,7 @@ export class MongoManager {
 
       return this.client
     } catch (error) {
-      this.logger.error('An error ocured connecting to the database')
+      this.logger.error('An error ocurred connecting to the database')
       this.logger.error(error.stack)
     }
   }

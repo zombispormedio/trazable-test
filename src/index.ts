@@ -48,11 +48,13 @@ import { Config } from './config'
 
     // ADD
     const addUseCaseLogger = new GoogleWinstonLogger(ADD_USE_CASE_LOGGER)
+    const pubsubPublisher = new PubsubPublisher(EXAMPLE_CREATED_EVENT, Config.GCLOUD_PROJECT_ID || '', addUseCaseLogger)
+    await pubsubPublisher.createTopicIfNotExists()
     const addUseCase = new Add(
       new MongoExampleRepository(mongoClient, addUseCaseLogger),
       addUseCaseLogger,
       new NanoIdGenerator(),
-      new PubsubPublisher(EXAMPLE_CREATED_EVENT, Config.GCLOUD_PROJECT_ID || '', addUseCaseLogger)
+      pubsubPublisher
     )
 
     // GET ALL
@@ -85,6 +87,7 @@ import { Config } from './config'
     // GOOGLE PUBSUB
     const googlePubSub = new GooglePubSub(
       Config.GCLOUD_PROJECT_ID || '',
+      EXAMPLE_CREATED_EVENT,
       showMessageUseCase,
       new GoogleWinstonLogger(PUBSUB_LOGGER)
     )

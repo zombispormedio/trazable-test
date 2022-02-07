@@ -1,7 +1,6 @@
 import { PubSub } from '@google-cloud/pubsub'
 
 import { UserHandler } from './message-handlers/user.handler'
-import { ShowMessage } from '../../../../use-cases/showMessage'
 import { ILogger } from '../../../../ports/logger'
 
 import { Subscription } from './subscription'
@@ -17,11 +16,13 @@ export class GooglePubSub {
   private readonly applyDiscountToUserUseCase: ApplyDiscountToUser
   private readonly logger: ILogger
   private readonly pubSubClient: PubSub
-  private readonly topicName: string
+  private readonly userTopicName: string
+  private readonly discountTopicName: string
 
   constructor(
     projectId: string,
-    topicName: string,
+    userTopicName: string,
+    discountTopicName: string,
     createNotificationUseCase: CreateNotification,
     applyDiscountToUserUseCase: ApplyDiscountToUser,
     logger: ILogger
@@ -29,7 +30,8 @@ export class GooglePubSub {
     this.createNotificationUseCase = createNotificationUseCase
     this.applyDiscountToUserUseCase = applyDiscountToUserUseCase
     this.logger = logger
-    this.topicName = topicName
+    this.userTopicName = userTopicName
+    this.discountTopicName = discountTopicName
     this.pubSubClient = new PubSub({ projectId })
   }
 
@@ -44,13 +46,20 @@ export class GooglePubSub {
       userHandler.applyDiscountToUserHandler,
       this.logger,
       Config.DISCOUNT_SUBSCRIPTION_NAME
-    ).initSubscription(this.topicName)
+    ).initSubscription(this.discountTopicName)
 
     await new Subscription(
       this.pubSubClient,
-      userHandler.createNotificationHandler,
+      userHandler.createWelcomeNotificationHandler,
       this.logger,
-      Config.NOTIFICATION_SUBSCRIPTION_NAME
-    ).initSubscription(this.topicName)
+      Config.USER_NOTIFICATION_SUBSCRIPTION_NAME
+    ).initSubscription(this.userTopicName)
+
+    await new Subscription(
+      this.pubSubClient,
+      userHandler.createUpdatedDiscountNotificationHandler,
+      this.logger,
+      Config.DISCOUNT_NOTIFICATION_SUBSCRIPTION_NAME
+    ).initSubscription(this.discountTopicName)
   }
 }

@@ -6,13 +6,13 @@ import { ILogger } from '../../../../ports/logger'
  */
 export class Subscription {
   private readonly pubSubClient: PubSub
-  private readonly messageHandler: (message: Message) => Promise<void>
+  private readonly messageHandler: (topicName: string, message: Message) => Promise<void>
   private readonly logger: ILogger
   private readonly subscriptionName?: string
 
   constructor(
     pubSubClient: PubSub,
-    messageHandler: (message: Message) => Promise<void>,
+    messageHandler: (topicName: string, message: Message) => Promise<void>,
     logger: ILogger,
     subscriptionName?: string
   ) {
@@ -28,7 +28,7 @@ export class Subscription {
       const subscription = this.pubSubClient.subscription(this.subscriptionName)
 
       // Subscription handler
-      subscription.on('message', this.messageHandler)
+      subscription.on('message', (message: Message) => this.messageHandler(topicName, message))
       subscription.on('error', async error => {
         this.logger.error(error.details)
       })

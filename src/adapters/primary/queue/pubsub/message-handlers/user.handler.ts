@@ -13,22 +13,35 @@ export class UserHandler {
     this.applyDiscountToUserUseCase = applyDiscountToUserUseCase
   }
 
-  createNotificationHandler = async (message: Message): Promise<void> => {
+  createWelcomeNotificationHandler = async (topicName: string, message: Message): Promise<void> => {
     try {
       const messageAttributes = message.attributes as MessageAtributes
 
+      const user = JSON.parse(message.data.toString())
+
       this.createNotificationUseCase.logger.setCorrelationId(messageAttributes.correlationId)
-      await this.createNotificationUseCase.execute(
-        JSON.parse(message.data.toString()),
-        'Welcome, thanks for registering!'
-      )
+      await this.createNotificationUseCase.execute(topicName, user._id)
       message.ack()
     } catch (error) {
       this.createNotificationUseCase.logger.error(error)
     }
   }
 
-  applyDiscountToUserHandler = async (message: Message): Promise<void> => {
+  createUpdatedDiscountNotificationHandler = async (topicName: string, message: Message): Promise<void> => {
+    try {
+      const messageAttributes = message.attributes as MessageAtributes
+
+      const discount = JSON.parse(message.data.toString())
+
+      this.createNotificationUseCase.logger.setCorrelationId(messageAttributes.correlationId)
+      await this.createNotificationUseCase.execute(topicName, discount.userId, discount.percentage)
+      message.ack()
+    } catch (error) {
+      this.createNotificationUseCase.logger.error(error)
+    }
+  }
+
+  applyDiscountToUserHandler = async (topicName: string, message: Message): Promise<void> => {
     try {
       const messageAttributes = message.attributes as MessageAtributes
 

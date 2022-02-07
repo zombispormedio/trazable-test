@@ -18,6 +18,10 @@ export class Discount implements IDiscount {
   updatedAt: Date
   readonly createdAt: Date
 
+  static isValidPercentage(percentage?: number): boolean {
+    return !!percentage && percentage >= 0 && percentage <= 100
+  }
+
   constructor({ _id, userId, updatedAt, expiresAt, createdAt, percentage }: IDiscount) {
     this._id = _id
     this.userId = userId

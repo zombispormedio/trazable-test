@@ -12,3 +12,10 @@ export const PUBSUB_LOGGER = 'PUBSUB'
 
 // PUBSUB CONSTANTS
 export const USER_CREATED_EVENT = 'USER_CREATED'
+
+export const DISCOUNT_UPDATED_EVENT = 'DISCOUNT_UPDATED'
+
+export const NOTIFICATION_MESSAGES = {
+  USER_CREATED_EVENT: (...arguments_: any[]): string => 'Welcome, thanks for registering!',
+  DISCOUNT_UPDATED_EVENT: (...arguments_: any[]): string => `Discount updated to ${arguments_[0]}%!`,
+}

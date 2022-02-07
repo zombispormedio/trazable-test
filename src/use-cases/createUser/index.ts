@@ -5,6 +5,7 @@ import { IIDGenerator } from '../../ports/id-generator'
 import { IQueue, MessageAttributeOperation } from '../../ports/queue'
 import { IUserRepository } from '../../repositories/user.repository'
 import { User } from '../../entities/user'
+import { PropertyInvalidError } from '../../exceptions/property-invalid'
 
 /**
  * Add new User UseCase
@@ -31,13 +32,13 @@ export class CreateUser {
    */
   async execute({ name, email }: { name: string; email: string }): Promise<void> {
     this.logger.info('Creating a new user')
-    // REPOSITORY
-    const userAlreadyExist = await this.repository.getByEmail(name)
-    // BUSINESS EXCEPTIONS
+
     if (!name) throw new PropertyRequiredError('name')
     if (!email) throw new PropertyRequiredError('email')
+    if (!User.isValidEmail(email)) throw new PropertyInvalidError('email is invalid')
+
+    const userAlreadyExist = await this.repository.getByEmail(email)
     if (userAlreadyExist) throw new AlreadyExistsError()
-    // REPOSITORY
     const newUser = new User({
       _id: this.idGenerator.generate(),
       name,

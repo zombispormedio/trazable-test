@@ -4,6 +4,7 @@ import { Response } from 'express'
 import { AlreadyExistsError } from '../../../../exceptions/already-exists'
 import { NotFoundError } from '../../../../exceptions/not-found'
 import { PropertyRequiredError } from '../../../../exceptions/property-required'
+import { PropertyInvalidError } from '../../../../exceptions/property-invalid'
 
 // HTTP CODES
 import { StatusCodes } from 'http-status-codes'
@@ -23,6 +24,8 @@ export const ManageError = (error: CustomError, res: Response, logger: ILogger):
   } else if (error instanceof NotFoundError) {
     res.status(StatusCodes.BAD_REQUEST).json(error.message)
   } else if (error instanceof PropertyRequiredError) {
+    res.status(StatusCodes.BAD_REQUEST).json(error.message)
+  } else if (error instanceof PropertyInvalidError) {
     res.status(StatusCodes.BAD_REQUEST).json(error.message)
   } else {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).end()

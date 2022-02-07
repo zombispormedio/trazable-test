@@ -1,3 +1,4 @@
+import * as joi from 'joi'
 import { IDiscount } from './discount'
 
 export interface IUser {
@@ -15,6 +16,10 @@ export class User implements IUser {
   discounts?: IDiscount[] | undefined
   updatedAt: Date
   readonly createdAt: Date
+
+  static isValidEmail(email: string): boolean {
+    return !joi.string().email().validate(email).error
+  }
 
   constructor({ _id, name, email, updatedAt, createdAt }: IUser) {
     this._id = _id

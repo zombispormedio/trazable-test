@@ -23,7 +23,7 @@ export class GoogleWinstonLogger implements ILogger {
       defaultMeta: {
         pid: process.pid,
         correlationId: this.correlationId,
-        microservice: 'project_name',
+        microservice: 'trazable-test',
       },
       format: this.winstonLoggerFormatter(),
       transports: Config.NODE_ENV === 'production' ? this.productionTransport : this.developmentTransport,
@@ -61,7 +61,7 @@ export class GoogleWinstonLogger implements ILogger {
       ...this.developmentTransport,
       new LoggingWinston({
         level: 'debug',
-        logName: 'project_name',
+        logName: 'trazable-test',
       }),
     ]
 

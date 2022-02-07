@@ -1,8 +1,8 @@
 import { ILogger } from '../../ports/logger'
 import { IIDGenerator } from '../../ports/id-generator'
-import { IUser } from '../../entities/user'
 import { Notification } from '../../entities/notification'
 import { INotificationRepository } from '../../repositories/notification.repository'
+import { NOTIFICATION_MESSAGES, USER_CREATED_EVENT, DISCOUNT_UPDATED_EVENT } from '../../constants'
 
 /**
  * Add new User UseCase
@@ -25,18 +25,31 @@ export class CreateNotification {
    * @param user - user to be notification
    * @param message - Notification message
    */
-  async execute(user: IUser, message: string): Promise<void> {
+  async execute(eventName: string, userId: string, ...arguments_: any): Promise<void> {
     this.logger.info('Creating a new notification')
 
-    const newNotification = new Notification({
-      _id: this.idGenerator.generate(),
-      userId: user._id,
-      message,
-      createdAt: new Date(),
-    })
+    let message
 
-    await this.repository.save(newNotification)
+    switch (eventName) {
+      case USER_CREATED_EVENT:
+        message = NOTIFICATION_MESSAGES.USER_CREATED_EVENT(...arguments_)
+        break
+      case DISCOUNT_UPDATED_EVENT:
+        message = NOTIFICATION_MESSAGES.DISCOUNT_UPDATED_EVENT(...arguments_)
+        break
+    }
 
-    this.logger.info('New discount created succesfully')
+    if (message) {
+      const newNotification = new Notification({
+        _id: this.idGenerator.generate(),
+        userId,
+        message,
+        createdAt: new Date(),
+      })
+
+      await this.repository.save(newNotification)
+
+      this.logger.info('New notification created succesfully')
+    }
   }
 }

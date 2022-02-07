@@ -20,7 +20,7 @@ export class PubsubPublisher implements IQueue {
       messageId = await this.pubSubClient.topic(this.topicName).publish(dataBuffer, {
         ...attributes,
         ...(this.logger.getCorrelationId() ? { correlationId: this.logger.getCorrelationId() } : {}),
-        microserviceTrigger: 'project_name',
+        microserviceTrigger: 'trazable-test',
       } as MessageAtributes)
       this.logger.info(`Message published on topic ${this.topicName} succesfully with ID: ${messageId}`)
     } catch (error) {

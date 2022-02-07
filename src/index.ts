@@ -23,6 +23,7 @@ import {
   GET_ALL_USERS_USE_CASE_LOGGER,
   APPLY_DISCOUNT_TO_USER_USE_CASE_LOGGER,
   CREATE_NOTIFICATION_USE_CASE_LOGGER,
+  DISCOUNT_UPDATED_EVENT,
 } from './constants'
 import { GooglePubSub } from './adapters/primary/queue/pubsub'
 import { Config } from './config'
@@ -53,18 +54,18 @@ class ChildProcessHandler implements IChildProcessHandler {
 
       // ADD
       const createUserUseCaseLogger = new GoogleWinstonLogger(CREATE_USER_USE_CASE_LOGGER)
-      const pubsubPublisher = new PubsubPublisher(
+      const userPubsubPublisher = new PubsubPublisher(
         USER_CREATED_EVENT,
         Config.GCLOUD_PROJECT_ID || '',
         createUserUseCaseLogger
       )
-      await pubsubPublisher.createTopicIfNotExists()
+      await userPubsubPublisher.createTopicIfNotExists()
 
       const createUserUseCase = new CreateUser(
         new MongoUserRepository(mongoClient, createUserUseCaseLogger),
         createUserUseCaseLogger,
         new NanoIdGenerator(),
-        pubsubPublisher
+        userPubsubPublisher
       )
 
       // GET ALL Users
@@ -83,9 +84,18 @@ class ChildProcessHandler implements IChildProcessHandler {
 
       // Update Discount Percentage
       const updateDiscountPercentageUseCaseLogger = new GoogleWinstonLogger(UDPATE_DISCOUNT_PERCENTAGE_USE_CASE_LOGGER)
+      const discountPubsubPublisher = new PubsubPublisher(
+        DISCOUNT_UPDATED_EVENT,
+        Config.GCLOUD_PROJECT_ID || '',
+        updateDiscountPercentageUseCaseLogger
+      )
+      await discountPubsubPublisher.createTopicIfNotExists()
+
       const updateDiscountPercentageUseCase = new UpdateDiscountPercentage(
         new MongoDiscountRepository(mongoClient, updateDiscountPercentageUseCaseLogger),
-        updateDiscountPercentageUseCaseLogger
+
+        updateDiscountPercentageUseCaseLogger,
+        discountPubsubPublisher
       )
 
       const applyDiscountToUserUseCaseLogger = new GoogleWinstonLogger(APPLY_DISCOUNT_TO_USER_USE_CASE_LOGGER)
@@ -122,7 +132,7 @@ class ChildProcessHandler implements IChildProcessHandler {
       const googlePubSub = new GooglePubSub(
         Config.GCLOUD_PROJECT_ID || '',
         USER_CREATED_EVENT,
-
+        DISCOUNT_UPDATED_EVENT,
         createNotificationUseCase,
         applyDiscountToUserUseCase,
         new GoogleWinstonLogger(PUBSUB_LOGGER)

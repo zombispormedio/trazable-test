@@ -8,7 +8,6 @@ export enum MessageAttributeOperation {
 export type MessageAtributes = {
   version: string
   correlationId?: string
-  companyId: string
   microserviceTrigger?: string
   collection: string
   operation: MessageAttributeOperation

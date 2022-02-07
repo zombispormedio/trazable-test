@@ -3,33 +3,47 @@ import morgan from 'morgan'
 import helmet from 'helmet'
 import { StatusCodes } from 'http-status-codes'
 
-import { ExampleController } from './controllers/example.controller'
-import { Add } from '../../../../use-cases/add'
-import { GetAll } from '../../../../use-cases/getAll'
-import { ChangeName } from '../../../../use-cases/changeName'
+import { UserController } from './controllers/user.controller'
 import { ILogger } from '../../../../ports/logger'
 import { AuthenticationMiddleware } from './middlewares/authentication'
 import { IAuth } from '../../../../ports/auth'
+import { CreateUser } from '../../../../use-cases/createUser'
+import { UpdateDiscountPercentage } from '../../../../use-cases/updateDiscountPercentage'
+import { GetAllNotifications } from '../../../../use-cases/getAllNotifications'
+import { GetAllUsers } from '../../../../use-cases/getAllUsers'
+interface IExpressAPIOptions {
+  logger: ILogger
+  auth: IAuth
+}
 
 /*
  * Express configuration
  */
 export class ExpressApi {
-  private readonly addUseCase: Add
-  private readonly getAllUseCase: GetAll
-  private readonly changeNameUseCase: ChangeName
+  private readonly createUser: CreateUser
+  private readonly getAllUsersUseCase: GetAllUsers
+  private readonly updateDiscountPercentageUseCase: UpdateDiscountPercentage
+  private readonly getAllNotificationsUseCase: GetAllNotifications
   private readonly logger: ILogger
   private readonly app: Express
   private readonly auth: IAuth
   private readonly authMiddleware: AuthenticationMiddleware
 
-  constructor(addUseCase: Add, getAllUseCase: GetAll, changeNameUseCase: ChangeName, logger: ILogger, auth: IAuth) {
-    this.addUseCase = addUseCase
-    this.getAllUseCase = getAllUseCase
-    this.changeNameUseCase = changeNameUseCase
-    this.auth = auth
+  constructor(
+    createUser: CreateUser,
+    getAllUsersUseCase: GetAllUsers,
+    updateDiscountPercentageUseCase: UpdateDiscountPercentage,
+    getAllNotificationsUseCase: GetAllNotifications,
+    options: IExpressAPIOptions
+  ) {
+    this.createUser = createUser
+    this.getAllUsersUseCase = getAllUsersUseCase
+    this.updateDiscountPercentageUseCase = updateDiscountPercentageUseCase
+    this.getAllNotificationsUseCase = getAllNotificationsUseCase
 
-    this.logger = logger
+    this.auth = options.auth
+
+    this.logger = options.logger
 
     this.app = express()
     this.authMiddleware = new AuthenticationMiddleware(this.auth)
@@ -76,14 +90,25 @@ export class ExpressApi {
       res.status(StatusCodes.OK).end()
     })
 
-    const exampleController = new ExampleController(this.addUseCase, this.getAllUseCase, this.changeNameUseCase)
+    const userController = new UserController(
+      this.createUser,
+      this.getAllUsersUseCase,
+      this.updateDiscountPercentageUseCase,
+      this.getAllNotificationsUseCase
+    )
 
     router
-      .route('/examples/')
-      .post(this.authMiddleware.authenticate, exampleController.add)
-      .get(exampleController.getAll)
+      .route('/users/')
+      .post(this.authMiddleware.authenticate, userController.create)
+      .get(this.authMiddleware.authenticate, userController.getAll)
 
-    router.route('/examples/changeName/:id').patch(this.authMiddleware.authenticate, exampleController.changeName)
+    router
+      .route('/users/:userId/notifications')
+      .get(this.authMiddleware.authenticate, userController.getAllNotifications)
+
+    router
+      .route('/users/:userId/current-discount-percentage')
+      .patch(this.authMiddleware.authenticate, userController.updateCurrentDiscountPercentage)
 
     this.app.use(router)
   }

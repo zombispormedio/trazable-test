@@ -1,17 +1,8 @@
 // APPLICATION INDEX
-import cluster from 'cluster'
-import process from 'process'
-import { cpus } from 'os'
 import { install as installSourceMapSupport } from 'source-map-support'
 
-import { Add } from './use-cases/add'
 import { ExpressApi } from './adapters/primary/rest/express'
 import { MongoManager } from './adapters/secondary/mongo'
-import { MongoExampleRepository } from './adapters/secondary/mongo/example.repository'
-
-import { GetAll } from './use-cases/getAll'
-import { ChangeName } from './use-cases/changeName'
-import { ShowMessage } from './use-cases/showMessage'
 import { GoogleWinstonLogger } from './adapters/secondary/google/logger'
 import { GoogleCloudSecret } from './adapters/secondary/google/secret'
 import { GoogleKMS } from './adapters/secondary/google/kms'
@@ -22,19 +13,30 @@ import { AxiosHttp } from './adapters/secondary/http/axios-http'
 import { TrazableAuth } from './adapters/secondary/trazable/trazable-auth'
 import {
   DATABASE_LOGGER,
-  ADD_USE_CASE_LOGGER,
-  GET_ALL_USE_CASE_LOGGER,
-  CHANGE_NAME_USE_CASE_LOGGER,
+  CREATE_USER_USE_CASE_LOGGER,
   EXPRESS_API_LOGGER,
-  SHOW_MESSAGE_USE_CASE_LOGGER,
   PUBSUB_LOGGER,
-  EXAMPLE_CREATED_EVENT,
+  USER_CREATED_EVENT,
   CLUSTER_LOGGER,
+  GET_ALL_NOTIFICATIONS_USE_CASE_LOGGER,
+  UDPATE_DISCOUNT_PERCENTAGE_USE_CASE_LOGGER,
+  GET_ALL_USERS_USE_CASE_LOGGER,
+  APPLY_DISCOUNT_TO_USER_USE_CASE_LOGGER,
+  CREATE_NOTIFICATION_USE_CASE_LOGGER,
 } from './constants'
 import { GooglePubSub } from './adapters/primary/queue/pubsub'
 import { Config } from './config'
 import { IChildProcessHandler } from './ports/cluster'
 import { ClusterManager } from './adapters/secondary/cluster'
+import { CreateUser } from './use-cases/createUser'
+import { MongoUserRepository } from './adapters/secondary/mongo/user.repository'
+import { GetAllNotifications } from './use-cases/getAllNotifications'
+import { MongoNotificationRepository } from './adapters/secondary/mongo/notification.repository'
+import { MongoDiscountRepository } from './adapters/secondary/mongo/discount.repository'
+import { UpdateDiscountPercentage } from './use-cases/updateDiscountPercentage'
+import { GetAllUsers } from './use-cases/getAllUsers'
+import { ApplyDiscountToUser } from './use-cases/applyDiscountToUser'
+import { CreateNotification } from './use-cases/createNotification'
 
 class ChildProcessHandler implements IChildProcessHandler {
   async exec(): Promise<void> {
@@ -50,46 +52,68 @@ class ChildProcessHandler implements IChildProcessHandler {
       /// //// PRIMARY PORTS (CORE) \\\\ \\\
 
       // ADD
-      const addUseCaseLogger = new GoogleWinstonLogger(ADD_USE_CASE_LOGGER)
+      const createUserUseCaseLogger = new GoogleWinstonLogger(CREATE_USER_USE_CASE_LOGGER)
       const pubsubPublisher = new PubsubPublisher(
-        EXAMPLE_CREATED_EVENT,
+        USER_CREATED_EVENT,
         Config.GCLOUD_PROJECT_ID || '',
-        addUseCaseLogger
+        createUserUseCaseLogger
       )
       await pubsubPublisher.createTopicIfNotExists()
-      const addUseCase = new Add(
-        new MongoExampleRepository(mongoClient, addUseCaseLogger),
-        addUseCaseLogger,
+
+      const createUserUseCase = new CreateUser(
+        new MongoUserRepository(mongoClient, createUserUseCaseLogger),
+        createUserUseCaseLogger,
         new NanoIdGenerator(),
         pubsubPublisher
       )
 
-      // GET ALL
-      const getAllUseCaseLogger = new GoogleWinstonLogger(GET_ALL_USE_CASE_LOGGER)
-      const getAllUseCase = new GetAll(
-        new MongoExampleRepository(mongoClient, getAllUseCaseLogger),
-        getAllUseCaseLogger
+      // GET ALL Users
+      const getAllUsersUseCaseLogger = new GoogleWinstonLogger(GET_ALL_USERS_USE_CASE_LOGGER)
+      const getAllUsersUseCase = new GetAllUsers(
+        new MongoUserRepository(mongoClient, getAllUsersUseCaseLogger),
+        getAllUsersUseCaseLogger
       )
 
-      // CHANGE NAME
-      const changeNameUseCaseLogger = new GoogleWinstonLogger(CHANGE_NAME_USE_CASE_LOGGER)
-      const changeNameUseCase = new ChangeName(
-        new MongoExampleRepository(mongoClient, changeNameUseCaseLogger),
-        changeNameUseCaseLogger
+      // GET ALL Notifications
+      const getAllNotificationsUseCaseLogger = new GoogleWinstonLogger(GET_ALL_NOTIFICATIONS_USE_CASE_LOGGER)
+      const getAllNotificationsUseCase = new GetAllNotifications(
+        new MongoNotificationRepository(mongoClient, getAllNotificationsUseCaseLogger),
+        getAllNotificationsUseCaseLogger
       )
 
-      // LOG CREATION
-      const showMessageUseCase = new ShowMessage(new GoogleWinstonLogger(SHOW_MESSAGE_USE_CASE_LOGGER))
+      // Update Discount Percentage
+      const updateDiscountPercentageUseCaseLogger = new GoogleWinstonLogger(UDPATE_DISCOUNT_PERCENTAGE_USE_CASE_LOGGER)
+      const updateDiscountPercentageUseCase = new UpdateDiscountPercentage(
+        new MongoDiscountRepository(mongoClient, updateDiscountPercentageUseCaseLogger),
+        updateDiscountPercentageUseCaseLogger
+      )
+
+      const applyDiscountToUserUseCaseLogger = new GoogleWinstonLogger(APPLY_DISCOUNT_TO_USER_USE_CASE_LOGGER)
+      const applyDiscountToUserUseCase = new ApplyDiscountToUser(
+        new MongoDiscountRepository(mongoClient, applyDiscountToUserUseCaseLogger),
+        applyDiscountToUserUseCaseLogger,
+        new NanoIdGenerator()
+      )
+
+      const createNotificationUseCaseLogger = new GoogleWinstonLogger(CREATE_NOTIFICATION_USE_CASE_LOGGER)
+      const createNotificationUseCase = new CreateNotification(
+        new MongoNotificationRepository(mongoClient, createNotificationUseCaseLogger),
+        createNotificationUseCaseLogger,
+        new NanoIdGenerator()
+      )
 
       /// //// PRIMARY ADAPTERS (INPUT) \\\\ \\\
 
       // EXPRESS API
       const api = new ExpressApi(
-        addUseCase,
-        getAllUseCase,
-        changeNameUseCase,
-        new GoogleWinstonLogger(EXPRESS_API_LOGGER),
-        new TrazableAuth(new AxiosHttp(), Config.AUTH_URL)
+        createUserUseCase,
+        getAllUsersUseCase,
+        updateDiscountPercentageUseCase,
+        getAllNotificationsUseCase,
+        {
+          logger: new GoogleWinstonLogger(EXPRESS_API_LOGGER),
+          auth: new TrazableAuth(new AxiosHttp(), Config.AUTH_URL),
+        }
       )
       // Start api at port 8080
       api.start(Config.PORT || '8080')
@@ -97,8 +121,10 @@ class ChildProcessHandler implements IChildProcessHandler {
       // GOOGLE PUBSUB
       const googlePubSub = new GooglePubSub(
         Config.GCLOUD_PROJECT_ID || '',
-        EXAMPLE_CREATED_EVENT,
-        showMessageUseCase,
+        USER_CREATED_EVENT,
+
+        createNotificationUseCase,
+        applyDiscountToUserUseCase,
         new GoogleWinstonLogger(PUBSUB_LOGGER)
       )
       // Start pubsub subscriptions

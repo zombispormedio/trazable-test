@@ -20,7 +20,8 @@ export const Config = {
   KMS_KEY_WALLETS: process.env.KMS_KEY_WALLETS, // Wallets key (wallets)
 
   // PUBSUB
-  SUBSCRIPTION_NAME: process.env.SUBSCRIPTION_NAME,
+  DISCOUNT_SUBSCRIPTION_NAME: process.env.DISCOUNT_SUBSCRIPTION_NAME,
+  NOTIFICATION_SUBSCRIPTION_NAME: process.env.NOTIFICATION_SUBSCRIPTION_NAME,
 
   AUTH_URL: process.env.AUTH_URL, // Trazable Microservice Auth URL
   PORT: process.env.PORT, // Port on serve http primary adapter // default 8080

@@ -130,3 +130,4 @@ To run the API, only the following environment variables have been added, the re
 - APPLY_WELCOME_DISCOUNT_SUBSCRIPTION_NAME: the subscription name to handle user created event and apply discount
 - WELCOME_NOTIFICATION_SUBSCRIPTION_NAME: the subscription name to handle user created event and notify user
 - CHANGED_DISCOUNT_NOTIFICATION_SUBSCRIPTION_NAME: the subscription name to handle discount updated event and notify user
+- CONCURRENCY_NUM_CPUS: the number of CPUs to run the service, all CPUs by default.

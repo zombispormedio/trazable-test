@@ -1,17 +1,18 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import expect from 'expect'
-import { Add } from '.'
+import { CreateUser } from '.'
 import sinon, { SinonFakeTimers } from 'sinon'
 
-import ExampleDataInJSON from '../../../__mocks__/example/add/example-data-in.json'
-import ExampleDataOutJSON from '../../../__mocks__/example/add/example-data-out.json'
 import { FakeIdGenerator } from '../../../__mocks__/ports/id-generator'
 import { FakeQueue } from '../../../__mocks__/ports/queue'
 import { FakeLogger } from '../../../__mocks__/ports/logger'
-import { FakeExampleRepository } from '../../../__mocks__/repositories/example.repository'
+import { FakeUserRepository } from '../../../__mocks__/repositories/user.repository'
 
-describe('addExample use-case', () => {
+import ExampleDataInJSON from '../../../__mocks__/example/createUser/example-data-in.json'
+import ExampleDataOutJSON from '../../../__mocks__/example/createUser/example-data-out.json'
+
+describe('createNotification use-case', () => {
   const now = new Date('2000-01-01')
   let clock: SinonFakeTimers
 
@@ -21,22 +22,49 @@ describe('addExample use-case', () => {
 
   afterEach(() => {
     clock.restore()
+    sinon.restore()
   })
 
   it('should create a new example successfully', async () => {
-    const stubSave = sinon.stub(FakeExampleRepository.prototype, 'save')
+    const stubSave = sinon.stub(FakeUserRepository.prototype, 'save')
 
-    sinon.stub(FakeExampleRepository.prototype, 'getByName').resolves()
+    const stubGetByEmail = sinon.stub(FakeUserRepository.prototype, 'getByEmail').resolves()
+    sinon.stub(FakeIdGenerator.prototype, 'generate').returns('123')
+    const stubPublish = sinon.stub(FakeQueue.prototype, 'publish').resolves()
+    sinon.stub(FakeLogger.prototype, 'info')
+
+    const createUserUseCase = new CreateUser(
+      new FakeUserRepository(),
+      new FakeLogger(),
+      new FakeIdGenerator(),
+      new FakeQueue()
+    )
+
+    const result = await createUserUseCase.execute(ExampleDataInJSON)
+
+    expect(stubGetByEmail.called).toBeTruthy()
+
+    expect(stubSave.called).toBeTruthy()
+
+    expect({ ...result }).toStrictEqual({ ...ExampleDataOutJSON, createdAt: now, updatedAt: now })
+
+    expect(stubPublish.called).toBeTruthy()
+  })
+
+  it('should fail creating a new example with invalid email', async () => {
+    sinon.stub(FakeUserRepository.prototype, 'save')
+
     sinon.stub(FakeIdGenerator.prototype, 'generate').returns('123')
     sinon.stub(FakeQueue.prototype, 'publish').resolves()
     sinon.stub(FakeLogger.prototype, 'info')
 
-    const addUseCase = new Add(new FakeExampleRepository(), new FakeLogger(), new FakeIdGenerator(), new FakeQueue())
+    const useCase = new CreateUser(new FakeUserRepository(), new FakeLogger(), new FakeIdGenerator(), new FakeQueue())
 
-    const result = await addUseCase.execute(ExampleDataInJSON)
-
-    expect({ ...result }).toStrictEqual({ ...ExampleDataOutJSON, createdAt: now, updatedAt: now })
+    expect(
+      useCase.execute({
+        ...ExampleDataInJSON,
+        email: 'invalid-email',
+      })
+    ).rejects.toThrow()
   })
-
-  it('should fail creating a new example with incorrect parameters')
 })

@@ -1,0 +1,9 @@
+[
+  {
+    "_id": "123",
+    "name": "Example Name",
+    "email": "example@example.com",
+    "createdAt": "2000-01-01",
+    "updatedAt": "2000-01-01"
+  }
+]

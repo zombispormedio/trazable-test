@@ -30,7 +30,7 @@ export class CreateUser {
    * @param user - New user to create
    *
    */
-  async execute({ name, email }: { name: string; email: string }): Promise<void> {
+  async execute({ name, email }: { name: string; email: string }): Promise<User> {
     this.logger.info('Creating a new user')
 
     if (!name) throw new PropertyRequiredError('name')
@@ -56,5 +56,7 @@ export class CreateUser {
       collection: 'users',
       operation: MessageAttributeOperation.CREATE,
     })
+
+    return newUser
   }
 }

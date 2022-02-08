@@ -30,17 +30,17 @@
 
 - Download this repository.
 - Remove the existing .git file and create a new one for your project with the following commands:  
-`rm -rf .git`  
-`git init`  
-`git add .`  
-`git commit -m "Initial commit"`
+  `rm -rf .git`  
+  `git init`  
+  `git add .`  
+  `git commit -m "Initial commit"`
 - Find and change globally `project_name` to the correct project name
 - Change in `package.json` the project information (name, description, repository...)
 
 ## Running the application
 
-- Install dependencies:  `npm i`
-- Run the environment with docker-compose:  `docker-compose up`.
+- Install dependencies: `npm i`
+- Run the environment with docker-compose: `docker-compose up`.
   - Services:
     - project_name: Example application using the trazable hexagonal architecture.
       - localhost:8080
@@ -74,6 +74,7 @@
         - The method execute (command pattern) realize the behaviour of the name that have the use-case, in this case `Add` a `Example`.
         - Bussines say that is not possible add a `Example` with the same name, for manage this, we go to the `repository` to ask if any `Example` exist with the name received (the input and output of these methods are defined in the interface, MUST return a businnes entity not a container data), if the name exist, we throw a business exception called `NameAlreadyExists` (manage the exception and return a custom message its a responsability from the primary adapter).
 - Details/Dependencies
+
   - When you start creating the use-case, you need create the dependencies necessaries to call your logic and the dependencies of the logic.
     - Example: `Add` use case (src/use-cases/add-index.ts)
       - Primary Adapter:
@@ -98,7 +99,7 @@
 ### Generic
 
 ### Staging
-  
+
 ### Production
 
 ### Playground
@@ -117,3 +118,15 @@
 - DB_URI?: Optional env variable if no secret is provided
 - DB_USER?: Optional env variable if no secret is provided
 - DB_PASSWORD?: Optional env variable if no secret is provided
+
+## Technical test
+
+You have available a [postman collection](./postman_collection.json) with all the implemented endpoints.
+
+To run the API, only the following environment variables have been added, the rest remains the same.
+
+### Added Environment Variables
+
+- APPLY_WELCOME_DISCOUNT_SUBSCRIPTION_NAME: the subscription name to handle user created event and apply discount
+- WELCOME_NOTIFICATION_SUBSCRIPTION_NAME: the subscription name to handle user created event and notify user
+- CHANGED_DISCOUNT_NOTIFICATION_SUBSCRIPTION_NAME: the subscription name to handle discount updated event and notify user

@@ -25,7 +25,7 @@ export class ApplyDiscountToUser {
    * @param user - User to apply discount
    *
    */
-  async execute(user: IUser): Promise<void> {
+  async execute(user: IUser): Promise<Discount> {
     this.logger.info('Creating a new discount')
     const newDiscount = new Discount({
       _id: this.idGenerator.generate(),
@@ -37,5 +37,7 @@ export class ApplyDiscountToUser {
     await this.repository.save(newDiscount)
 
     this.logger.info('New discount created succesfully')
+
+    return newDiscount
   }
 }

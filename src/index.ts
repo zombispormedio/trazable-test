@@ -48,11 +48,7 @@ class ChildProcessHandler implements IChildProcessHandler {
     // Connect database and retrieve the client
     const mongoClient = await mongoManager.connect()
 
-    // USE-CASE LOGGERS
     if (mongoClient) {
-      /// //// PRIMARY PORTS (CORE) \\\\ \\\
-
-      // ADD
       const createUserUseCaseLogger = new GoogleWinstonLogger(CREATE_USER_USE_CASE_LOGGER)
       const userPubsubPublisher = new PubsubPublisher(
         USER_CREATED_EVENT,

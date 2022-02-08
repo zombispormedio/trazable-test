@@ -2,33 +2,35 @@ version: '3.7'
 
 services:
 
-    # project_name:
-    #     image: ${PROJECT_NAME_IMAGE_NAME:-project_name}
-    #     build:
-    #         context: .
-    #         dockerfile: Dockerfile
-    #         target: development
-    #     depends_on:
-    #         - mongo
-    #     stdin_open: true[]
-    #     tty: true
-    #     container_name: project_name
-    #     environment:
-    #         - DB_USER=mongoadmin
-    #         - DB_PASSWORD=secret
-    #         - DB_URI=mongodb://mongo:27017/project_name?authSource=admin
-    #         - GCLOUD_PROJECT_ID=gloud_project_id
-    #         - SUBSCRIPTION_NAME=subscription_name
-    #         - PUBSUB_EMULATOR_HOST=pubsub_emulator:8432
-    #         - PUBSUB_PROJECT_ID=fake_project
+    trazable-test:
+        image: ${PROJECT_NAME_IMAGE_NAME:-project_name}
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: development
+        depends_on:
+            - mongo
+        stdin_open: true[]
+        tty: true
+        container_name: trazable-test
+        environment:
+            - DB_USER=mongoadmin
+            - DB_PASSWORD=secret
+            - DB_URI=mongodb://mongo:27017/project_name?authSource=admin
+            - GCLOUD_PROJECT_ID=gloud_project_id
+            - DISCOUNT_SUBSCRIPTION_NAME=discount_subscription_1
+            - USER_NOTIFICATION_SUBSCRIPTION_NAME=notification_subscription_1
+            - DISCOUNT_NOTIFICATION_SUBSCRIPTION_NAME=notification_subscription_2
+            - PUBSUB_EMULATOR_HOST=pubsub_emulator:8432
+            - PUBSUB_PROJECT_ID=trazable-test
 
-    #     volumes:
-    #         - ./:/app
-    #         - project_name_dist:/app/dist
-    #         - project_name_node_modules:/app/node_modules
-    #     ports:
-    #         - 8080:8080
-    #         - 9229:9229
+        volumes:
+            - ./:/app
+            - project_name_dist:/app/dist
+            - project_name_node_modules:/app/node_modules
+        ports:
+            - 8080:8080
+            - 9229:9229
 
     mongo:
         image: mongo:4.4-bionic

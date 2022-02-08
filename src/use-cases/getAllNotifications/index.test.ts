@@ -1,37 +1,33 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import expect from 'expect'
-import { GetAll } from '.'
-import { IExampleRepository } from '../../repositories/example.repository'
+import { GetAllNotifications } from '.'
 import sinon from 'sinon'
-import { IExample, Example } from '../../entities/example'
 import { ILogger } from '../../ports/logger'
-
-import ExampleDataInJSON from '../../../__mocks__/example/getAll/example-data-in.json'
-import ExampleDataOutJSON from '../../../__mocks__/example/getAll/example-data-out.json'
-import { FakeExampleRepository } from '../../../__mocks__/repositories/example.repository'
+import { Notification } from '../../entities/notification'
+import ExampleDataInJSON from '../../../__mocks__/example/getAllNotifications/example-data-in.json'
+import ExampleDataOutJSON from '../../../__mocks__/example/getAllNotifications/example-data-out.json'
+import { FakeNotificationRepository } from '../../../__mocks__/repositories/notification.repository'
 import { FakeLogger } from '../../../__mocks__/ports/logger'
 
-describe('getAllExamples use-case', () => {
+describe('getAllNotifications use-case', () => {
   const now = new Date('2000-01-01')
 
   beforeEach(() => {
     sinon.restore()
   })
 
-  it('should get all examples successfully', async () => {
+  it('should get all notifications successfully', async () => {
     sinon
-      .stub(FakeExampleRepository.prototype, 'getAll')
-      .resolves(ExampleDataOutJSON.map(example => new Example({ ...example, createdAt: now, updatedAt: now })))
+      .stub(FakeNotificationRepository.prototype, 'getAllByUserId')
+      .resolves(ExampleDataOutJSON.map(example => new Notification({ ...example, createdAt: now })))
     sinon.stub(FakeLogger.prototype, 'info')
-    const getAllUseCase = new GetAll(new FakeExampleRepository(), new FakeLogger())
+    const useCase = new GetAllNotifications(new FakeNotificationRepository(), new FakeLogger())
 
-    const examples = await getAllUseCase.execute()
+    const notifications = await useCase.execute(ExampleDataInJSON.userId)
 
-    expect(examples.map(example => ({ ...example }))).toStrictEqual(
-      ExampleDataOutJSON.map(example => ({ ...example, createdAt: now, updatedAt: now }))
+    expect(notifications.map(example => ({ ...example }))).toStrictEqual(
+      ExampleDataOutJSON.map(example => ({ ...example, createdAt: now }))
     )
   })
-
-  it('should fail creating a new example with incorrect parameters')
 })

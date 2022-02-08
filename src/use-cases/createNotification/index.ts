@@ -25,7 +25,7 @@ export class CreateNotification {
    * @param user - user to be notification
    * @param message - Notification message
    */
-  async execute(eventName: string, userId: string, ...arguments_: any): Promise<void> {
+  async execute(eventName: string, userId: string, ...arguments_: any): Promise<Notification | void> {
     this.logger.info('Creating a new notification')
 
     let message
@@ -50,6 +50,8 @@ export class CreateNotification {
       await this.repository.save(newNotification)
 
       this.logger.info('New notification created succesfully')
+
+      return newNotification
     }
   }
 }

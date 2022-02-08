@@ -3,7 +3,6 @@ import { ILogger } from '../../ports/logger'
 import { IDiscountRepository } from '../../repositories/discount.repository'
 import { Discount } from '../../entities/discount'
 import { IQueue, MessageAttributeOperation } from '../../ports/queue'
-import { PropertyRequiredError } from '../../exceptions/property-required'
 import { PropertyInvalidError } from '../../exceptions/property-invalid'
 
 /**

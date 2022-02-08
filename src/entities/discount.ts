@@ -1,6 +1,6 @@
 const DEFAULT_DISCOUNT_VALUE = 10
 
-const DEFAULT_EXPIRATION_MILLIS = 1000 * 60 * 60 * 24 * 30 // 30 days
+export const DEFAULT_EXPIRATION_MILLIS = 1000 * 60 * 60 * 24 * 30 // 30 days
 
 export interface IDiscount {
   _id: string

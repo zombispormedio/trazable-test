@@ -45,21 +45,21 @@ export class GooglePubSub {
       this.pubSubClient,
       userHandler.applyDiscountToUserHandler,
       this.logger,
-      Config.DISCOUNT_SUBSCRIPTION_NAME
+      Config.APPLY_WELCOME_DISCOUNT_SUBSCRIPTION_NAME
     ).initSubscription(this.discountTopicName)
 
     await new Subscription(
       this.pubSubClient,
       userHandler.createWelcomeNotificationHandler,
       this.logger,
-      Config.USER_NOTIFICATION_SUBSCRIPTION_NAME
+      Config.WELCOME_NOTIFICATION_SUBSCRIPTION_NAME
     ).initSubscription(this.userTopicName)
 
     await new Subscription(
       this.pubSubClient,
       userHandler.createUpdatedDiscountNotificationHandler,
       this.logger,
-      Config.DISCOUNT_NOTIFICATION_SUBSCRIPTION_NAME
+      Config.CHANGED_DISCOUNT_NOTIFICATION_SUBSCRIPTION_NAME
     ).initSubscription(this.discountTopicName)
   }
 }

@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 import expect from 'expect'
-import { ChangeName } from '.'
-import { Example } from '../../entities/example'
+import { UpdateDiscountPercentage } from '.'
+import { Discount } from '../../entities/discount'
 import sinon, { SinonFakeTimers } from 'sinon'
-import ExampleDataInJSON from '../../../__mocks__/example/changeName/example-data-in.json'
-import ExampleDataOutJSON from '../../../__mocks__/example/changeName/example-data-out.json'
+import { FakeQueue } from '../../../__mocks__/ports/queue'
+import ExampleDataInJSON from '../../../__mocks__/example/updateDiscountPercentage/example-data-in.json'
+import ExampleDataOutJSON from '../../../__mocks__/example/updateDiscountPercentage/example-data-out.json'
 import { FakeLogger } from '../../../__mocks__/ports/logger'
-import { FakeExampleRepository } from '../../../__mocks__/repositories/example.repository'
+import { FakeDiscountRepository } from '../../../__mocks__/repositories/discount.repository'
 
-describe('updateExample use-case', () => {
-  const now = new Date()
+describe('updateDiscountPercentage use-case', () => {
+  const now = new Date('2000-01-01')
+  const endMonth = new Date('2000-01-31')
   let clock: SinonFakeTimers
 
   beforeEach(() => {
-    sinon.resetHistory()
     clock = sinon.useFakeTimers(now.getTime())
   })
 
@@ -23,18 +24,35 @@ describe('updateExample use-case', () => {
     sinon.restore()
   })
 
-  it('should update the example successfully', async () => {
-    sinon
-      .stub(FakeExampleRepository.prototype, 'getById')
-      .resolves(new Example({ ...ExampleDataOutJSON, createdAt: now, updatedAt: now }))
-    sinon.stub(FakeExampleRepository.prototype, 'update').resolves()
+  it('should update the discount successfully', async () => {
+    const stubGet = sinon
+      .stub(FakeDiscountRepository.prototype, 'getByUserIdFromDate')
+      .resolves(new Discount({ ...ExampleDataOutJSON, createdAt: now, updatedAt: now }))
 
-    const changeName = new ChangeName(new FakeExampleRepository(), new FakeLogger())
+    const stubUpdate = sinon.stub(FakeDiscountRepository.prototype, 'update').resolves()
+    const stubPublish = sinon.stub(FakeQueue.prototype, 'publish').resolves()
 
-    const result = await changeName.execute(ExampleDataInJSON.id, ExampleDataInJSON.name)
+    const useCase = new UpdateDiscountPercentage(new FakeDiscountRepository(), new FakeLogger(), new FakeQueue())
 
-    expect({ ...result }).toStrictEqual({ ...ExampleDataOutJSON, createdAt: now, updatedAt: now })
+    const result = await useCase.execute(ExampleDataInJSON.userId, ExampleDataInJSON.percentage)
+
+    expect({ ...result }).toStrictEqual({ ...ExampleDataOutJSON, expiresAt: endMonth, createdAt: now, updatedAt: now })
+
+    expect(stubGet.called).toBeTruthy()
+    expect(stubUpdate.called).toBeTruthy()
+    expect(stubPublish.called).toBeTruthy()
   })
 
-  it('should fail creating a new example with incorrect parameters')
+  it('should fail updating the discount with incorrect parameters', async () => {
+    const stubGet = sinon
+      .stub(FakeDiscountRepository.prototype, 'getByUserIdFromDate')
+      .resolves(new Discount({ ...ExampleDataOutJSON, createdAt: now, updatedAt: now }))
+    sinon.stub(FakeLogger.prototype, 'info')
+
+    const useCase = new UpdateDiscountPercentage(new FakeDiscountRepository(), new FakeLogger(), new FakeQueue())
+
+    expect(useCase.execute(ExampleDataInJSON.userId, 3000)).rejects.toThrow()
+
+    expect(stubGet.called).toBeFalsy()
+  })
 })
